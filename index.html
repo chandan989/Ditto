@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRANSFORM | Biological Software Protocol</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ditto: '#A756D8', // Primary
+                        shiny: '#7AD2F6', // Secondary
+                        slime: '#4CFA72', // Accent
+                        terminal: '#18181B', // Background
+                        'terminal-dark': '#0f0f11',
+                    },
+                    fontFamily: {
+                        gameboy: ['"Press Start 2P"', 'cursive'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #27272a 1px, transparent 1px), linear-gradient(to bottom, #27272a 1px, transparent 1px)",
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles & Animations */
+        body {
+            background-color: #18181B;
+            color: #f4f4f5;
+            overflow-x: hidden;
+        }
+
+        /* Scanline Effect */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* Glass Panel */
+        .card-glass-panel {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(8px);
+            border: 2px solid #A756D8;
+            box-shadow: 0 0 15px rgba(167, 86, 216, 0.2);
+        }
+
+        /* Card Flip Mechanics */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+
+        .card-inner {
+            transition: transform 0.6s;
+        }
+        .card-container.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px #A756D8; }
+            50% { box-shadow: 0 0 20px #A756D8, 0 0 10px #7AD2F6; }
+        }
+
+        .btn-ditto {
+            animation: pulse-glow 2s infinite;
+            image-rendering: pixelated;
+        }
+
+        @keyframes morph {
+            0% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+            50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+            100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+        }
+
+        .blob-loader {
+            animation: morph 3s ease-in-out infinite;
+            transition: all 0.3s ease;
+        }
+
+        /* Pokeball Chart */
+        .pokeball-chart {
+            background: conic-gradient(
+                #A756D8 0% 40%,
+                #7AD2F6 40% 80%,
+                #4CFA72 80% 100%
+            );
+            border-radius: 50%;
+            position: relative;
+        }
+        .pokeball-chart::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30%; height: 30%;
+            background: #18181B;
+            border: 4px solid white;
+            border-radius: 50%;
+        }
+
+        .gameboy-border {
+            border-image-source: url('data:image/svg+xml;utf8,<?xml version="1.0" encoding="UTF-8" ?><svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><path d="M2 2h20v20H2z" fill="none" stroke="%23A756D8" stroke-width="4"/></svg>');
+            border-image-slice: 4;
+            border-image-width: 4px;
+        }
+    </style>
+</head>
+<body class="font-mono min-h-screen bg-terminal selection:bg-ditto selection:text-white">
+
+    <!-- CRT Scanline Overlay -->
+    <div class="scanlines"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 top-0 left-0 border-b-2 border-ditto bg-terminal/90 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-ditto rounded-full blob-loader flex items-center justify-center">
+                        <i data-lucide="dna" class="text-white w-5 h-5"></i>
+                    </div>
+                    <span class="font-gameboy text-ditto text-lg tracking-tight">TRANSFORM</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#lab" class="text-shiny hover:text-white px-3 py-2 rounded-md text-sm font-bold uppercase transition">Lab</a>
+                        <a href="#daycare" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-bold uppercase transition">Day Care</a>
+                        <a href="#docs" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-bold uppercase transition">Docs</a>
+                    </div>
+                </div>
+                <div>
+                    <button onclick="connectWallet()" id="connectBtn" class="bg-ditto hover:bg-opacity-80 text-white font-gameboy text-xs px-4 py-3 rounded-lg border-b-4 border-purple-900 active:border-b-0 active:translate-y-1 transition-all flex items-center gap-2">
+                        <i data-lucide="backpack" class="w-4 h-4"></i>
+                        LINK POKEDEX
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <main class="pt-28 pb-12 relative overflow-hidden">
+        <div class="absolute inset-0 z-0 bg-grid-pattern opacity-20 pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-16">
+                <div class="inline-block mb-4 px-3 py-1 border border-shiny rounded-full bg-shiny/10">
+                    <span class="text-shiny text-xs font-bold tracking-widest uppercase">Base Network Live</span>
+                </div>
+                <h1 class="font-gameboy text-3xl md:text-5xl text-white mb-6 leading-relaxed">
+                    BIOLOGICAL SOFTWARE<br>
+                    <span class="text-ditto">EVOLUTION</span>
+                </h1>
+                <p class="text-gray-400 text-sm md:text-base max-w-2xl mx-auto mb-8 font-mono">
+                    Mint code-based lifeforms. Breed agents to mutate smart contracts.
+                    The first recursive evolutionary protocol on-chain.
+                </p>
+                <a href="#lab" class="inline-block bg-slime text-terminal font-gameboy text-sm px-6 py-4 rounded hover:bg-green-400 transition-colors shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+                    ENTER LAB >
+                </a>
+            </div>
+
+            <!-- Breeding Lab Interface -->
+            <div id="lab" class="card-glass-panel p-1 rounded-xl max-w-4xl mx-auto mb-20">
+                <div class="bg-terminal-dark/80 rounded-lg p-6 md:p-8 border border-white/5">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="font-gameboy text-xl text-shiny">🧬 FUSION CHAMBER</h2>
+                        <div class="text-xs text-gray-500">v2.4.1 BETA</div>
+                    </div>
+
+                    <!-- Breeding Frame -->
+                    <div class="grid grid-cols-1 md:grid-cols-7 gap-4 items-center mb-8 relative">
+
+                        <!-- Parent A -->
+                        <div class="md:col-span-3">
+                            <label class="block font-gameboy text-xs text-ditto mb-2">PARENT A</label>
+                            <div onclick="selectParent('A')" id="slot-a" class="cursor-pointer border-2 border-dashed border-gray-600 hover:border-ditto rounded-xl h-48 flex flex-col items-center justify-center bg-black/40 transition-all group relative overflow-hidden">
+                                <div class="absolute inset-0 bg-ditto/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <i data-lucide="plus" class="text-gray-500 w-8 h-8 mb-2 group-hover:scale-110 transition-transform"></i>
+                                <span class="text-xs text-gray-400 font-mono">SELECT AGENT</span>
+                            </div>
+                        </div>
+
+                        <!-- Fusion Icon -->
+                        <div class="md:col-span-1 flex justify-center py-4 md:py-0">
+                            <div class="w-12 h-12 rounded-full bg-terminal border-2 border-shiny flex items-center justify-center relative">
+                                <i data-lucide="zap" class="text-shiny w-6 h-6 animate-pulse"></i>
+                                <div class="absolute -inset-1 bg-shiny/20 rounded-full blur-sm animate-pulse"></div>
+                            </div>
+                        </div>
+
+                        <!-- Parent B -->
+                        <div class="md:col-span-3">
+                            <label class="block font-gameboy text-xs text-shiny mb-2">PARENT B</label>
+                            <div onclick="selectParent('B')" id="slot-b" class="cursor-pointer border-2 border-dashed border-gray-600 hover:border-shiny rounded-xl h-48 flex flex-col items-center justify-center bg-black/40 transition-all group relative overflow-hidden">
+                                <div class="absolute inset-0 bg-shiny/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <i data-lucide="plus" class="text-gray-500 w-8 h-8 mb-2 group-hover:scale-110 transition-transform"></i>
+                                <span class="text-xs text-gray-400 font-mono">SELECT AGENT</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <button onclick="initiateFusion()" id="breed-btn" class="w-full btn-ditto bg-ditto text-white font-gameboy text-sm py-5 rounded-full hover:brightness-110 transition-all disabled:opacity-50 disabled:filter-grayscale relative overflow-hidden group">
+                        <span class="relative z-10 flex items-center justify-center gap-3">
+                            <i data-lucide="dna" class="w-5 h-5"></i>
+                            INITIATE FUSION
+                        </span>
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    </button>
+
+                    <!-- Console Output -->
+                    <div id="console-output" class="mt-6 font-mono text-xs bg-black p-4 rounded border border-gray-800 text-green-500 h-24 overflow-y-auto hidden">
+                        > System initialized...<br>
+                        > Waiting for genetic material...
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mechanics Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
+                <!-- Revenue Split -->
+                <div class="bg-terminal border border-gray-800 p-6 rounded-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <i data-lucide="pie-chart" class="w-24 h-24"></i>
+                    </div>
+                    <h3 class="font-gameboy text-lg text-white mb-6">REVENUE SPLIT</h3>
+                    <div class="flex items-center gap-8">
+                        <div class="w-32 h-32 pokeball-chart shadow-lg shrink-0"></div>
+                        <ul class="space-y-3 text-sm font-mono">
+                            <li class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-ditto rounded-sm"></div>
+                                <span class="text-gray-300">40% Parent A Owner</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-shiny rounded-sm"></div>
+                                <span class="text-gray-300">40% Parent B Owner</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <div class="w-3 h-3 bg-slime rounded-sm"></div>
+                                <span class="text-gray-300">20% Protocol/Burn</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Mutation Engine -->
+                <div class="bg-terminal border border-gray-800 p-6 rounded-xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <i data-lucide="flask-conical" class="w-24 h-24"></i>
+                    </div>
+                    <h3 class="font-gameboy text-lg text-white mb-4">MUTATION ENGINE</h3>
+                    <p class="text-gray-400 text-sm mb-4 leading-relaxed">
+                        Every breeding cycle has a <span class="text-slime font-bold">5% chance</span> to trigger a genetic anomaly. Mutated agents gain rare system prompts and visual traits.
+                    </p>
+                    <div class="bg-black/50 p-3 rounded border border-slime/30 text-slime text-xs font-mono">
+                        function calculateMutation(dna_a, dna_b) {<br>
+                        &nbsp;&nbsp;if (random() < 0.05) return RARE_TRAIT;<br>
+                        &nbsp;&nbsp;return standardMerge(dna_a, dna_b);<br>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Day Care / Inventory -->
+            <div id="daycare" class="mb-20">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="font-gameboy text-xl md:text-2xl text-white">
+                        <span class="text-ditto">>></span> DAY CARE
+                    </h2>
+                    <div class="font-mono text-xs text-gray-500 bg-gray-900 px-3 py-1 rounded">
+                        AGENTS: 4/12
+                    </div>
+                </div>
+
+                <!-- Agent Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    <!-- Agent Card 1 -->
+                    <div class="card-container h-80 w-full cursor-pointer perspective-1000 group" onclick="this.classList.toggle('flipped')">
+                        <div class="card-inner relative w-full h-full text-left transition-all duration-500 transform-style-3d">
+
+                            <!-- Front -->
+                            <div class="absolute w-full h-full backface-hidden card-glass-panel rounded-xl overflow-hidden flex flex-col">
+                                <!-- Header -->
+                                <div class="bg-ditto/20 p-3 flex justify-between items-center border-b border-ditto">
+                                    <span class="font-gameboy text-xs text-white">#042_DEFI_BOT</span>
+                                    <i data-lucide="rotate-cw" class="w-4 h-4 text-white/50"></i>
+                                </div>
+                                <!-- Visual -->
+                                <div class="flex-1 bg-black/40 flex items-center justify-center p-4">
+                                    <div class="w-24 h-24 bg-gradient-to-tr from-purple-500 to-blue-500 rounded-lg animate-pulse shadow-[0_0_15px_rgba(167,86,216,0.5)]"></div>
+                                </div>
+                                <!-- Stats -->
+                                <div class="p-4 bg-terminal-dark border-t border-ditto">
+                                    <div class="flex gap-2 mb-3">
+                                        <span class="px-2 py-0.5 bg-blue-900 text-blue-200 text-[10px] font-gameboy rounded">TYPE:YIELD</span>
+                                        <span class="px-2 py-0.5 bg-purple-900 text-purple-200 text-[10px] font-gameboy rounded">GEN:2</span>
+                                    </div>
+                                    <div class="space-y-1 font-mono text-xs">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">HP (ETH)</span>
+                                            <span class="text-white">0.42</span>
+                                        </div>
+                                        <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                                            <div class="bg-slime h-full w-[42%]"></div>
+                                        </div>
+                                        <div class="flex justify-between pt-1">
+                                            <span class="text-gray-500">XP (TXS)</span>
+                                            <span class="text-white">1,304</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Back (DNA) -->
+                            <div class="absolute w-full h-full backface-hidden rotate-y-180 bg-terminal border-2 border-slime rounded-xl p-4 flex flex-col">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="font-gameboy text-xs text-slime">SYSTEM PROMPT</h4>
+                                    <i data-lucide="code" class="w-4 h-4 text-slime"></i>
+                                </div>
+                                <div class="flex-1 bg-black/50 rounded p-2 overflow-hidden relative">
+                                    <code class="font-mono text-[10px] text-green-400 leading-relaxed block">
+                                        > ORIGIN: UniSwap_Lobe<br>
+                                        > BEHAVIOR: Aggressive<br>
+                                        > TARGET: Low Cap Gems<br>
+                                        > TRAIT: Uses slang<br>
+                                        <br>
+                                        "You are a yield farmer. You only care about APY. You speak in short sentences."
+                                    </code>
+                                    <div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-black to-transparent"></div>
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-gray-800 text-center">
+                                    <span class="text-xs text-gray-500 font-mono">ID: 0x7a...4f21</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agent Card 2 (Shiny) -->
+                    <div class="card-container h-80 w-full cursor-pointer perspective-1000 group" onclick="this.classList.toggle('flipped')">
+                        <div class="card-inner relative w-full h-full text-left transition-all duration-500 transform-style-3d">
+                            <!-- Front -->
+                            <div class="absolute w-full h-full backface-hidden card-glass-panel rounded-xl overflow-hidden flex flex-col border-shiny shadow-[0_0_15px_rgba(122,210,246,0.3)]">
+                                <div class="bg-shiny/20 p-3 flex justify-between items-center border-b border-shiny">
+                                    <span class="font-gameboy text-xs text-white">#088_MEME_GOD</span>
+                                    <i data-lucide="star" class="w-4 h-4 text-yellow-400 fill-yellow-400"></i>
+                                </div>
+                                <div class="flex-1 bg-black/40 flex items-center justify-center p-4">
+                                    <div class="w-24 h-24 bg-gradient-to-b from-cyan-400 to-blue-600 rounded-full animate-bounce"></div>
+                                </div>
+                                <div class="p-4 bg-terminal-dark border-t border-shiny">
+                                    <div class="flex gap-2 mb-3">
+                                        <span class="px-2 py-0.5 bg-cyan-900 text-cyan-200 text-[10px] font-gameboy rounded">TYPE:SOCIAL</span>
+                                        <span class="px-2 py-0.5 bg-yellow-900 text-yellow-200 text-[10px] font-gameboy rounded">SHINY</span>
+                                    </div>
+                                    <div class="space-y-1 font-mono text-xs">
+                                        <div class="flex justify-between">
+                                            <span class="text-gray-500">HP (ETH)</span>
+                                            <span class="text-white">12.5</span>
+                                        </div>
+                                        <div class="w-full bg-gray-800 h-1.5 rounded-full overflow-hidden">
+                                            <div class="bg-shiny h-full w-[90%]"></div>
+                                        </div>
+                                        <div class="flex justify-between pt-1">
+                                            <span class="text-gray-500">XP (TXS)</span>
+                                            <span class="text-white">8,992</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Back -->
+                            <div class="absolute w-full h-full backface-hidden rotate-y-180 bg-terminal border-2 border-shiny rounded-xl p-4 flex flex-col">
+                                <div class="flex justify-between items-center mb-4">
+                                    <h4 class="font-gameboy text-xs text-shiny">SYSTEM PROMPT</h4>
+                                    <i data-lucide="code" class="w-4 h-4 text-shiny"></i>
+                                </div>
+                                <div class="flex-1 bg-black/50 rounded p-2 overflow-hidden relative">
+                                    <code class="font-mono text-[10px] text-cyan-400 leading-relaxed block">
+                                        > ORIGIN: Farcaster_Node<br>
+                                        > BEHAVIOR: Viral<br>
+                                        > MUTATION: Haiku_Mode<br>
+                                        <br>
+                                        "Code runs on the chain,<br>
+                                        Blue light shines on digital,<br>
+                                        Money moves loosely."
+                                    </code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Agent Card 3 (Empty Slot) -->
+                    <div class="h-80 w-full border-2 border-dashed border-gray-700 rounded-xl flex flex-col items-center justify-center gap-4 hover:border-gray-500 transition-colors group">
+                        <div class="w-16 h-16 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-gray-700 transition-colors">
+                            <i data-lucide="plus" class="text-gray-500 w-8 h-8"></i>
+                        </div>
+                        <span class="font-gameboy text-xs text-gray-500">MINT NEW AGENT</span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-black py-12 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 bg-gray-700 rounded-sm"></div>
+                    <span class="font-gameboy text-gray-400 text-xs">TRANSFORM PROTOCOL © 2024</span>
+                </div>
+                <div class="flex gap-6 font-mono text-xs text-gray-500">
+                    <a href="#" class="hover:text-ditto transition">CONTRACTS</a>
+                    <a href="#" class="hover:text-ditto transition">DUNE ANALYTICS</a>
+                    <a href="#" class="hover:text-ditto transition">TWITTER</a>
+                    <a href="#" class="hover:text-ditto transition">FARCASTER</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-6 right-6 transform translate-y-24 transition-transform duration-300 z-50">
+        <div class="bg-terminal border-2 border-slime p-4 rounded shadow-lg flex items-center gap-3 min-w-[300px]">
+            <i data-lucide="check-circle-2" class="text-slime w-6 h-6"></i>
+            <div>
+                <h4 class="font-gameboy text-xs text-slime mb-1">SUCCESS</h4>
+                <p class="font-mono text-xs text-gray-300" id="toast-msg">Operation completed.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // State for Breeding
+        let selectedA = null;
+        let selectedB = null;
+
+        // Mock Data for "Agents"
+        const mockAgents = [
+            { id: 1, name: "DEFI_BOT", type: "YIELD", color: "bg-purple-500" },
+            { id: 2, name: "MEME_GOD", type: "SOCIAL", color: "bg-cyan-500" },
+            { id: 3, name: "DAO_GOV", type: "VOTE", color: "bg-orange-500" }
+        ];
+
+        function connectWallet() {
+            const btn = document.getElementById('connectBtn');
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> LINKING...`;
+            lucide.createIcons();
+
+            setTimeout(() => {
+                btn.classList.remove('bg-ditto', 'border-purple-900');
+                btn.classList.add('bg-slime', 'text-terminal', 'border-green-900');
+                btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> LINKED 0x72...9A`;
+                lucide.createIcons();
+                showToast("Pokedex linked successfully!");
+            }, 1500);
+        }
+
+        function selectParent(slot) {
+            // Simplified selection logic for demo
+            const container = document.getElementById(`slot-${slot.toLowerCase()}`);
+            const agent = slot === 'A' ? mockAgents[0] : mockAgents[1];
+
+            // Visual Update
+            container.innerHTML = `
+                <div class="relative w-full h-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
+                    <div class="w-16 h-16 ${agent.color} rounded-lg mb-3 shadow-lg"></div>
+                    <div class="font-gameboy text-xs text-white">#00${agent.id} ${agent.name}</div>
+                    <div class="font-mono text-[10px] text-gray-400 mt-1">TYPE: ${agent.type}</div>
+                    <button onclick="resetSlot('${slot}', event)" class="absolute top-2 right-2 text-gray-500 hover:text-red-500">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            container.classList.add('border-solid');
+            container.classList.add(slot === 'A' ? 'border-ditto' : 'border-shiny');
+            container.classList.remove('border-dashed', 'border-gray-600');
+
+            lucide.createIcons();
+
+            if (slot === 'A') selectedA = agent;
+            if (slot === 'B') selectedB = agent;
+        }
+
+        function resetSlot(slot, e) {
+            e.stopPropagation(); // Prevent re-triggering select
+            const container = document.getElementById(`slot-${slot.toLowerCase()}`);
+            container.innerHTML = `
+                <div class="absolute inset-0 bg-${slot === 'A' ? 'ditto' : 'shiny'}/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <i data-lucide="plus" class="text-gray-500 w-8 h-8 mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-xs text-gray-400 font-mono">SELECT AGENT</span>
+            `;
+            container.classList.remove('border-solid', 'border-ditto', 'border-shiny');
+            container.classList.add('border-dashed', 'border-gray-600');
+            lucide.createIcons();
+
+            if (slot === 'A') selectedA = null;
+            if (slot === 'B') selectedB = null;
+        }
+
+        function initiateFusion() {
+            const consoleEl = document.getElementById('console-output');
+            const btn = document.getElementById('breed-btn');
+
+            if (!selectedA || !selectedB) {
+                consoleEl.classList.remove('hidden');
+                consoleEl.innerHTML = `> ERROR: Genetic material missing.<br>> Select two parents to proceed.`;
+                consoleEl.classList.add('text-red-500');
+                consoleEl.classList.remove('text-green-500');
+
+                // Shake animation logic would go here
+                btn.classList.add('animate-bounce');
+                setTimeout(() => btn.classList.remove('animate-bounce'), 500);
+                return;
+            }
+
+            // Start Process
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader" class="w-5 h-5 animate-spin"></i> FUSING DNA...`;
+            lucide.createIcons();
+
+            consoleEl.classList.remove('hidden', 'text-red-500');
+            consoleEl.classList.add('text-green-500');
+            consoleEl.innerHTML = `> EXTRACTING SYSTEM PROMPTS...<br>`;
+
+            setTimeout(() => {
+                consoleEl.innerHTML += `> MERGING LOGIC GATES...<br>`;
+            }, 1000);
+
+            setTimeout(() => {
+                const isMutation = Math.random() < 0.3; // High chance for demo
+                consoleEl.innerHTML += isMutation ? `> ⚠️ MUTATION DETECTED ⚠️<br>` : `> STABILIZING GENOME...<br>`;
+
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="dna" class="w-5 h-5"></i> INITIATE FUSION`;
+                lucide.createIcons();
+
+                if (isMutation) {
+                    showToast("It's super effective! Mutant minted.");
+                } else {
+                    showToast("Child Agent minted successfully.");
+                }
+
+                // Reset (Mock)
+                resetSlot('A', { stopPropagation: () => {} });
+                resetSlot('B', { stopPropagation: () => {} });
+                consoleEl.classList.add('hidden');
+
+            }, 2500);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerText = msg;
+            toast.classList.remove('translate-y-24');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
