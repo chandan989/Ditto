@@ -2,10 +2,10 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Dna } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { WalletButton } from "./WalletButton";
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
   const location = useLocation();
 
   const navLinks = [
@@ -13,10 +13,6 @@ const Navigation = () => {
     { label: "REGISTRY", path: "/registry" },
     { label: "DAYCARE", path: "/daycare" },
   ];
-
-  const handleConnect = () => {
-    setIsConnected(!isConnected);
-  };
 
   return (
     <>
@@ -37,11 +33,10 @@ const Navigation = () => {
                 <Link
                   key={link.path}
                   to={link.path}
-                  className={`font-gameboy text-xs transition-colors ${
-                    location.pathname === link.path
-                      ? "text-white"
-                      : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`font-gameboy text-xs transition-colors ${location.pathname === link.path
+                    ? "text-white"
+                    : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -50,18 +45,7 @@ const Navigation = () => {
 
             {/* Right: Wallet Button */}
             <div className="flex items-center gap-4">
-              {isConnected ? (
-                <div className="bg-slime text-black px-4 py-2 rounded-lg font-mono text-xs font-bold">
-                  0xAB12...34CD
-                </div>
-              ) : (
-                <Button
-                  onClick={handleConnect}
-                  className="bg-ditto hover:bg-ditto/90 text-white font-gameboy text-xs px-4 py-2 glow-effect"
-                >
-                  LINK POKEDEX
-                </Button>
-              )}
+              <WalletButton />
 
               {/* Mobile Menu Toggle */}
               <button
@@ -83,11 +67,10 @@ const Navigation = () => {
                   key={link.path}
                   to={link.path}
                   onClick={() => setIsOpen(false)}
-                  className={`font-gameboy text-xs transition-colors ${
-                    location.pathname === link.path
-                      ? "text-white"
-                      : "text-gray-400 hover:text-white"
-                  }`}
+                  className={`font-gameboy text-xs transition-colors ${location.pathname === link.path
+                    ? "text-white"
+                    : "text-gray-400 hover:text-white"
+                    }`}
                 >
                   {link.label}
                 </Link>
@@ -96,7 +79,7 @@ const Navigation = () => {
           </div>
         )}
       </nav>
-      
+
       {/* Spacer for fixed nav */}
       <div className="h-16"></div>
     </>
