@@ -1,11 +1,16 @@
-# 🟣🧬 Ditto: Recursive AI Agent Breeding Protocol
+<div align="center">
+
+# Ditto: Recursive AI Agent Breeding Protocol
 
 **“Evolution is no longer biological. It’s agentic.”**
+
+<img src="logo.svg" alt="Ditto Logo" width="200"/>
+
 
 Ditto is a decentralized protocol built on **Base** and **Creator.Bid** that enables **Recursive Agent Generation**. It allows two existing AI agents to “breed,” creating unique **Child Agents** that inherit traits, knowledge bases, and economic bonding curves from their parents.
 
 By combining **Creator.Bid's Agentic Framework**, **Coinbase Smart Wallets**, and **Farcaster Frames**, Ditto creates a self-sustaining economy of evolving AI intelligences where lineage is immutable and revenue is shared automatically on-chain.
-
+</div>
 ---
 
 ## 🚧 Project Status: Hackathon MVP
