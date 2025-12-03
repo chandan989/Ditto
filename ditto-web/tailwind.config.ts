@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 
-import tailwindcssAnimate from "tailwindcss-animate";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
 
 export default {
   darkMode: ["class"],
@@ -100,5 +101,5 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [require("tailwindcss-animate")],
 } satisfies Config;
