@@ -1,4 +1,0 @@
-File: C:\Users\HPP\Downloads\hacks\Ditto\ditto-web\src\components\ui\command.tsx
-  Line 24: An interface declaring no members is equivalent to its supertype. (@typescript-eslint/no-empty-object-type)
-File: C:\Users\HPP\Downloads\hacks\Ditto\ditto-web\src\components\ui\textarea.tsx
-  Line 5: An interface declaring no members is equivalent to its supertype. (@typescript-eslint/no-empty-object-type)
